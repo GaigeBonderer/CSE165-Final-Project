@@ -103,7 +103,7 @@ void display_func(void)
 	glBegin(GL_TRIANGLES); //begin drawing the triangle
 	glVertex2f(PlayerX, PlayerY); //defines 1st vertex
 	glVertex2f(PlayerX + 0.3f, PlayerY); //defines 2nd vertex
-	glVertex2f(PlayerX + 0.15f, PlayerY + 0.3f); //defines 3rd vertex
+	glVertex2f(PlayerX + 0.15f, PlayerY + 0.3f); //defines 3rd vertex (temp)
 	glEnd(); //ends drawing
 
 	glutSwapBuffers();
