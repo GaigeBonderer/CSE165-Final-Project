@@ -23,8 +23,8 @@ void reshape_func(int width, int height)
 	glutPostRedisplay();
 }
 
-float PlayerX = 0.25f;
-float PlayerY = 0.25f;
+float PlayerX = 0.25f; // Establishes intitial value for PlayerX
+float PlayerY = 0.25f; // Establishes intitial value for PlayerY
 
 void keyboard_func(unsigned char key, int x, int y)
 {
@@ -32,16 +32,16 @@ void keyboard_func(unsigned char key, int x, int y)
 	{
 	case 'w':
 
-		PlayerY += 0.05f;
+		//PlayerY += 0.05f; Removed so Player cant move up
 		break;
 	case 'a':
-		PlayerX -= 0.05f;
+		PlayerX -= 0.05f; // Moves player left
 		break;
 	case 's':
-		PlayerY -= 0.05f;
+		//PlayerY -= 0.05f; Removed so Player cant move down
 		break;
 	case 'd':
-		PlayerX += 0.05f;
+		PlayerX += 0.05f; // Moves player right
 		break;
 		// Exit on escape key press
 	case '\x1B':
@@ -84,26 +84,24 @@ void display_func(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//horizontal line: 
-	//glBegin(GL_LINES); //beginning of line segments
-	//glColor3f(1.0f, 0.0f, 0.0f); //sets color to red
-	//glVertex2f(-0.5f, 0.0f); //defines start point of line x=-0.5 y=0.0
-	//glColor3f(0.0f, 1.0f, 0.0f); //changes color to green
-	//glVertex2f(0.5f, 0.0f); //defines end of line x = 0.5 y=0.0
-	//glEnd(); //ends line segment
+	// glBegin(GL_LINES);
+	// 	glColor3f(1.0f, 0.0f, 0.0f);
+	// 	glVertex2f(-0.5f, 0.0f);
+	// 	glColor3f(0.0f, 1.0f, 0.0f);
+	// 	glVertex2f(0.5f, 0.0f);
+	// glEnd();
 
-	//vertical line: 
-	//glColor3f(0.0f, 0.0f, 1.0f); //sets color to blue
-	//glBegin(GL_LINES);
-	//glVertex2f(0.0f, -0.5f);
-	//glVertex2f(0.0f, 0.5f);
-	//glEnd();
+	// glColor3f(0.0f, 0.0f, 1.0f);
+	// 	glBegin(GL_LINES);
+	// 	glVertex2f(0.0f, -0.5f);
+	// 	glVertex2f(0.0f, 0.5f);
+	// glEnd();
 
 	glColor3f(1.0f, 1.0f, 1.0f); //sets the color to white
 	glBegin(GL_TRIANGLES); //begin drawing the triangle
 	glVertex2f(PlayerX, PlayerY); //defines 1st vertex
-	glVertex2f(PlayerX + 0.3f, PlayerY); //defines 2nd vertex
-	glVertex2f(PlayerX + 0.15f, PlayerY + 0.3f); //defines 3rd vertex (temp)
+	glVertex2f(PlayerX + 0.1f, PlayerY); //defines 2nd vertex
+	glVertex2f(PlayerX + 0.05f, PlayerY + 0.1f); //defines 3rd vertex (temp)
 	glEnd(); //ends drawing
 
 	glutSwapBuffers();
@@ -124,6 +122,9 @@ void init(void)
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 	std::cout << "Finished initializing...\n\n";
+
+	PlayerX = -0.075f; // Edits Players initial starting position (horizontal)
+	PlayerY = -0.9f; // Edits Players initial starting position (Vertical)
 }
 
 //=================================================================================================
