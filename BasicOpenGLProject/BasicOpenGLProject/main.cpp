@@ -17,16 +17,16 @@ void idle_func()
 	glutPostRedisplay();
 }
 
-void reshape_func( int width, int height )
+void reshape_func(int width, int height)
 {
-	glViewport( 0, 0, width, height );
+	glViewport(0, 0, width, height);
 	glutPostRedisplay();
 }
 
 float PlayerX = 0.25f; // Establishes intitial value for PlayerX
 float PlayerY = 0.25f; // Establishes intitial value for PlayerY
 
-void keyboard_func( unsigned char key, int x, int y )
+void keyboard_func(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
@@ -52,32 +52,32 @@ void keyboard_func( unsigned char key, int x, int y )
 	glutPostRedisplay();
 }
 
-void key_released( unsigned char key, int x, int y )
+void key_released(unsigned char key, int x, int y)
 {
 }
 
-void key_special_pressed( int key, int x, int y )
+void key_special_pressed(int key, int x, int y)
 {
 }
 
-void key_special_released( int key, int x, int y )
+void key_special_released(int key, int x, int y)
 {
 }
 
-void mouse_func( int button, int state, int x, int y )
+void mouse_func(int button, int state, int x, int y)
 {
 }
 
-void passive_motion_func( int x, int y )
+void passive_motion_func(int x, int y)
 {
 }
 
-void active_motion_func( int x, int y )
+void active_motion_func(int x, int y)
 {
 }
 
 //=================================================================================================
-// RENDERING
+// RENDERING  (creating and displaying the triangle)
 //=================================================================================================
 
 void display_func(void)
@@ -97,12 +97,12 @@ void display_func(void)
 	// 	glVertex2f(0.0f, 0.5f);
 	// glEnd();
 
-	glColor3f(1.0f, 1.0f, 1.0f);
-	glBegin(GL_TRIANGLES);
-	glVertex2f(PlayerX, PlayerY); 
-	glVertex2f(PlayerX + 0.1f, PlayerY);
-	glVertex2f(PlayerX + 0.05f, PlayerY + 0.1f);
-	glEnd();
+	glColor3f(1.0f, 1.0f, 1.0f); //sets the color to white
+	glBegin(GL_TRIANGLES); //begin drawing the triangle
+	glVertex2f(PlayerX, PlayerY); //defines 1st vertex
+	glVertex2f(PlayerX + 0.1f, PlayerY); //defines 2nd vertex
+	glVertex2f(PlayerX + 0.05f, PlayerY + 0.1f); //defines 3rd vertex (temp)
+	glEnd(); //ends drawing
 
 	glutSwapBuffers();
 }
@@ -131,26 +131,26 @@ void init(void)
 // MAIN
 //=================================================================================================
 
-int main( int argc, char** argv )
+int main(int argc, char** argv)
 {
-	glutInit( &argc, argv );
+	glutInit(&argc, argv);
 
-	glutInitWindowPosition( 100, 100 );
-	glutInitWindowSize( 800, 600 );
-	glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH );
+	glutInitWindowPosition(100, 100);
+	glutInitWindowSize(800, 600);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 
-	glutCreateWindow( "Basic OpenGL Example" );
+	glutCreateWindow("Basic OpenGL Example");
 
-	glutDisplayFunc( display_func );
-	glutIdleFunc( idle_func );
-	glutReshapeFunc( reshape_func );
-	glutKeyboardFunc( keyboard_func );
-	glutKeyboardUpFunc( key_released );
-	glutSpecialFunc( key_special_pressed );
-	glutSpecialUpFunc( key_special_released );
-	glutMouseFunc( mouse_func );
-	glutMotionFunc( active_motion_func );
-	glutPassiveMotionFunc( passive_motion_func );
+	glutDisplayFunc(display_func);
+	glutIdleFunc(idle_func);
+	glutReshapeFunc(reshape_func);
+	glutKeyboardFunc(keyboard_func);
+	glutKeyboardUpFunc(key_released);
+	glutSpecialFunc(key_special_pressed);
+	glutSpecialUpFunc(key_special_released);
+	glutMouseFunc(mouse_func);
+	glutMotionFunc(active_motion_func);
+	glutPassiveMotionFunc(passive_motion_func);
 
 	init();
 
