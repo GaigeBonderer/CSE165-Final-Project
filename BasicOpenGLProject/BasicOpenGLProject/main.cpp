@@ -14,7 +14,7 @@
 void idle_func()
 {
 	//uncomment below to repeatedly draw new frames
-	//glutPostRedisplay();
+	glutPostRedisplay();
 }
 
 void reshape_func( int width, int height )
@@ -23,36 +23,30 @@ void reshape_func( int width, int height )
 	glutPostRedisplay();
 }
 
+float PlayerX = 0.25f;
+float PlayerY = 0.25f;
+
 void keyboard_func( unsigned char key, int x, int y )
 {
-	switch( key )
+	switch (key)
 	{
-		case 'w':
-		{
-			break;
-		}
+	case 'w':
 
-		case 'a':
-		{
-			break;
-		}
-
-		case 's':
-		{
-			break;
-		}
-
-		case 'd':
-		{
-			break;
-		}
-
+		PlayerY += 0.05f;
+		break;
+	case 'a':
+		PlayerX -= 0.05f;
+		break;
+	case 's':
+		PlayerY -= 0.05f;
+		break;
+	case 'd':
+		PlayerX += 0.05f;
+		break;
 		// Exit on escape key press
-		case '\x1B':
-		{
-			exit( EXIT_SUCCESS );
-			break;
-		}
+	case '\x1B':
+		exit(EXIT_SUCCESS);
+		break;
 	}
 
 	glutPostRedisplay();
@@ -86,28 +80,28 @@ void active_motion_func( int x, int y )
 // RENDERING
 //=================================================================================================
 
-void display_func( void )
+void display_func(void)
 {
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glBegin( GL_LINES );
-		glColor3f( 1.0f, 0.0f, 0.0f );
-		glVertex2f( -0.5f, 0.0f );
-		glColor3f( 0.0f, 1.0f, 0.0f );
-		glVertex2f( 0.5f, 0.0f );
+	glBegin(GL_LINES);
+		glColor3f(1.0f, 0.0f, 0.0f);
+		glVertex2f(-0.5f, 0.0f);
+		glColor3f(0.0f, 1.0f, 0.0f);
+		glVertex2f(0.5f, 0.0f);
 	glEnd();
 
-	glColor3f( 0.0f, 0.0f, 1.0f );
-	glBegin( GL_LINES );
-		glVertex2f( 0.0f, -0.5f );
-		glVertex2f( 0.0f, 0.5f );
+	glColor3f(0.0f, 0.0f, 1.0f);
+		glBegin(GL_LINES);
+		glVertex2f(0.0f, -0.5f);
+		glVertex2f(0.0f, 0.5f);
 	glEnd();
 
-	glColor3f( 1.0f, 1.0f, 1.0f );
-	glBegin( GL_TRIANGLES );
-		glVertex2f( 0.1f, 0.1f );
-		glVertex2f( 0.4f, 0.1f );
-		glVertex2f( 0.25f, 0.4f );
+	glColor3f(1.0f, 1.0f, 1.0f);
+		glBegin(GL_TRIANGLES);
+		glVertex2f(PlayerX, PlayerY);
+		glVertex2f(PlayerX + 0.3f, PlayerY);
+		glVertex2f(PlayerX + 0.15f, PlayerY + 0.3f);
 	glEnd();
 
 	glutSwapBuffers();
