@@ -99,9 +99,9 @@ void display_func(void)
 
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glBegin(GL_TRIANGLES);
-	glVertex2f(PlayerX, PlayerY); // Draws 1/3 points for triangle (temp cooment) 
-	glVertex2f(PlayerX + 0.1f, PlayerY); // Draws 2/3 points for triangle edit + x.xf to change triangle size 
-	glVertex2f(PlayerX + 0.05f, PlayerY + 0.1f); // Draws 3/3 points for triangle edit + x.xf to change triangle size
+	glVertex2f(PlayerX, PlayerY); 
+	glVertex2f(PlayerX + 0.1f, PlayerY);
+	glVertex2f(PlayerX + 0.05f, PlayerY + 0.1f);
 	glEnd();
 
 	glutSwapBuffers();
