@@ -23,8 +23,8 @@ void reshape_func( int width, int height )
 	glutPostRedisplay();
 }
 
-float PlayerX = 0.25f;
-float PlayerY = 0.25f;
+float PlayerX = 0.25f; // Establishes intitial value for PlayerX
+float PlayerY = 0.25f; // Establishes intitial value for PlayerY
 
 void keyboard_func( unsigned char key, int x, int y )
 {
@@ -32,16 +32,16 @@ void keyboard_func( unsigned char key, int x, int y )
 	{
 	case 'w':
 
-		PlayerY += 0.05f;
+		//PlayerY += 0.05f; Removed so Player cant move up
 		break;
 	case 'a':
-		PlayerX -= 0.05f;
+		PlayerX -= 0.05f; // Moves player left
 		break;
 	case 's':
-		PlayerY -= 0.05f;
+		//PlayerY -= 0.05f; Removed so Player cant move down
 		break;
 	case 'd':
-		PlayerX += 0.05f;
+		PlayerX += 0.05f; // Moves player right
 		break;
 		// Exit on escape key press
 	case '\x1B':
@@ -84,24 +84,24 @@ void display_func(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glBegin(GL_LINES);
-		glColor3f(1.0f, 0.0f, 0.0f);
-		glVertex2f(-0.5f, 0.0f);
-		glColor3f(0.0f, 1.0f, 0.0f);
-		glVertex2f(0.5f, 0.0f);
-	glEnd();
+	// glBegin(GL_LINES);
+	// 	glColor3f(1.0f, 0.0f, 0.0f);
+	// 	glVertex2f(-0.5f, 0.0f);
+	// 	glColor3f(0.0f, 1.0f, 0.0f);
+	// 	glVertex2f(0.5f, 0.0f);
+	// glEnd();
 
-	glColor3f(0.0f, 0.0f, 1.0f);
-		glBegin(GL_LINES);
-		glVertex2f(0.0f, -0.5f);
-		glVertex2f(0.0f, 0.5f);
-	glEnd();
+	// glColor3f(0.0f, 0.0f, 1.0f);
+	// 	glBegin(GL_LINES);
+	// 	glVertex2f(0.0f, -0.5f);
+	// 	glVertex2f(0.0f, 0.5f);
+	// glEnd();
 
 	glColor3f(1.0f, 1.0f, 1.0f);
-		glBegin(GL_TRIANGLES);
-		glVertex2f(PlayerX, PlayerY);
-		glVertex2f(PlayerX + 0.3f, PlayerY);
-		glVertex2f(PlayerX + 0.15f, PlayerY + 0.3f);
+	glBegin(GL_TRIANGLES);
+	glVertex2f(PlayerX, PlayerY); // Draws 1/3 points for triangle 
+	glVertex2f(PlayerX + 0.1f, PlayerY); // Draws 2/3 points for triangle edit + x.xf to change triangle size 
+	glVertex2f(PlayerX + 0.05f, PlayerY + 0.1f); // Draws 3/3 points for triangle edit + x.xf to change triangle size
 	glEnd();
 
 	glutSwapBuffers();
@@ -111,17 +111,20 @@ void display_func(void)
 // INIT
 //=================================================================================================
 
-void init( void )
+void init(void)
 {
 	// Print some info
-	std::cout << "Vendor:         " << glGetString( GL_VENDOR   ) << "\n";
-	std::cout << "Renderer:       " << glGetString( GL_RENDERER ) << "\n";
-	std::cout << "OpenGL Version: " << glGetString( GL_VERSION  ) << "\n\n";
+	std::cout << "Vendor:         " << glGetString(GL_VENDOR) << "\n";
+	std::cout << "Renderer:       " << glGetString(GL_RENDERER) << "\n";
+	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << "\n\n";
 
 	// Set the background color
-	glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 	std::cout << "Finished initializing...\n\n";
+
+	PlayerX = -0.075f; // Edits Players initial starting position (horizontal)
+	PlayerY = -0.9f; // Edits Players initial starting position (Vertical)
 }
 
 //=================================================================================================
