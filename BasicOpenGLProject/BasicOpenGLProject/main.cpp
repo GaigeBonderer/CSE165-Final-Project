@@ -100,8 +100,8 @@ void display_func(void)
 	glColor3f(1.0f, 1.0f, 1.0f); //sets the color to white
 	glBegin(GL_TRIANGLES); //begin drawing the triangle
 	glVertex2f(PlayerX, PlayerY); //defines 1st vertex
-	glVertex2f(PlayerX + 0.3f, PlayerY); //defines 2nd vertex
-	glVertex2f(PlayerX + 0.15f, PlayerY + 0.3f); //defines 3rd vertex (temp)
+	glVertex2f(PlayerX + 0.1f, PlayerY); //defines 2nd vertex
+	glVertex2f(PlayerX + 0.05f, PlayerY + 0.1f); //defines 3rd vertex (temp)
 	glEnd(); //ends drawing
 
 	glutSwapBuffers();
