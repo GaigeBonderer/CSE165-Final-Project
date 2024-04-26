@@ -76,11 +76,74 @@ public:
 };
 
 //=================================================================================================
+// Dot Class
+//=================================================================================================
+
+class Dot {
+private:
+    float x, y; // Coordinates of the dot
+    float size; // Size of the dot
+
+public:
+    // Constructor to initialize the dot with position and size
+    Dot(float initX, float initY, float initSize = 5.0f)
+        : x(initX), y(initY), size(initSize) {}
+
+    // Method to draw the dot
+    void draw() const {
+        glPointSize(size); // Set point size
+        glColor3f(1.0f, 1.0f, 1.0f); // White color
+        glBegin(GL_POINTS); // Start drawing points
+        glVertex2f(x, y); // Draw the dot at specified coordinates
+        glEnd(); // End drawing
+    }
+
+    // Getters for dot coordinates
+    std::pair<float, float> getPosition() const {
+        return { x, y };
+    }
+
+    // Setters for dot coordinates
+    void setPosition(float newX, float newY) {
+        x = newX;
+        y = newY;
+    }
+};
+
+//=================================================================================================
+// DotManager Class
+//=================================================================================================
+
+class DotManager {
+private:
+    std::vector<Dot> dots; // Collection of dots
+
+public:
+    // Method to add a new dot to the collection
+    void addDot(float x, float y, float size = 5.0f) {
+        dots.emplace_back(x, y, size);
+    }
+
+    // Method to draw all dots
+    void drawDots() const {
+        for (const auto& dot : dots) {
+            dot.draw(); // Draw each dot
+        }
+    }
+
+
+
+};
+
+//=================================================================================================
 // GLOBAL VARIABLES
 //=================================================================================================
 
 //calls the Player
 Player player(0.0f, -0.9f, 0.1f, 0.05f); // Player object with initial position and size
+DotManager dotManager; // Dot manager to manage a collection of dots
+
+
 
 //=================================================================================================
 // CALLBACKS
@@ -113,22 +176,21 @@ void keyboard_func(unsigned char key, int x, int y) {
 void display_func(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Draw some white dots
-    std::vector<std::pair<float, float>> dotCoords = {
-        { -0.7f, 0.7f }, { 0.5f, -0.6f }, { 0.4f, 0.6f }, { -0.4f, -0.3f }, // using (x,y) coord
-        { 0.1f, 0.4f }, { -0.3f, 0.6f }, { 0.6f, -0.4f }, { -0.5f, -0.5f }
-    };
+    // Draws the white dots
+    dotManager.drawDots(); // Draw all dots in the dot manager
 
-    glPointSize(5.0f); //point size, diameter in pizels
-    glColor3f(1.0f, 1.0f, 1.0f); // White color for the dots
+    //initialize the dots
+    dotManager.addDot(-0.7f, 0.7f);
+    dotManager.addDot(0.5f, -0.6f);
+    dotManager.addDot(0.3f, 0.9f);
+    dotManager.addDot(-0.4f, -0.3f);
+    dotManager.addDot(0.1f, 0.1f);
+    dotManager.addDot(-0.3f, 0.4f);
+    dotManager.addDot(0.6f, 0.0f);
+    dotManager.addDot(-0.9f, -0.5f);
+    dotManager.addDot(0.9f, 0.8f);
 
-    glBegin(GL_POINTS);
-    for (const auto& coord : dotCoords) {
-        glVertex2f(coord.first, coord.second);
-    }
-    glEnd();
-
-    // Draw the player
+    // Draws the player
     player.draw(); // Draw the player triangle
 
     glutSwapBuffers(); // Swap buffers to display the result
