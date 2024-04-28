@@ -1,9 +1,6 @@
 #include <GL/freeglut.h>
 #include <iostream>
-
-//=================================================================================================
-// CALLBACKS
-//=================================================================================================
+#include <vector>
 
 //-----------------------------------------------------------------------------
 // CALLBACK DOCUMENTATION
@@ -11,150 +8,285 @@
 // http://freeglut.sourceforge.net/docs/api.php#WindowCallback
 //-----------------------------------------------------------------------------
 
-void idle_func()
-{
-	//uncomment below to repeatedly draw new frames
-	glutPostRedisplay();
+//=================================================================================================
+// Abstract Enemy Base Class
+//=================================================================================================
+
+class Enemy {
+public:
+    virtual void draw() const = 0; // Pure virtual function for drawing enemies
+    virtual ~Enemy() {} // Virtual destructor to ensure proper destruction of derived classes
+};
+
+//=================================================================================================
+// Derived Basic Enemy Class
+//=================================================================================================
+
+class BasicEnemy : public Enemy {
+private:
+    float x, y; // Enemy position
+    float size; // Size of the enemy
+
+public:
+    BasicEnemy(float initX, float initY, float initSize = 0.1f)
+        : x(initX), y(initY), size(initSize) {}
+
+    void draw() const override {
+        glColor3f(1.0f, 0.0f, 0.0f); // Red color
+        glBegin(GL_TRIANGLES);
+        glVertex2f(x, y);
+        glVertex2f(x + size, y);
+        glVertex2f(x + size / 2, y + size);
+        glEnd();
+    }
+};
+
+//=================================================================================================
+// Derived Boss Enemy Class
+//=================================================================================================
+
+class AdvancedEnemy : public Enemy {
+private:
+    float x, y; // Enemy position
+    float size; // Size of the enemy
+
+public:
+    AdvancedEnemy(float initX, float initY, float initSize = 0.15f)
+        : x(initX), y(initY), size(initSize) {}
+
+    void draw() const override {
+        glColor3f(0.0f, 1.0f, 0.0f); // Green color
+        glBegin(GL_TRIANGLES);
+        glVertex2f(x, y);
+        glVertex2f(x + size, y);
+        glVertex2f(x + size / 2, y + size);
+        glEnd();
+    }
+};
+
+//=================================================================================================
+// Player Class
+//=================================================================================================
+
+class Player {
+private:
+    float x, y; // Player position
+    float size; // Size of the triangle representing the player
+    float speed; // Speed of movement
+
+public:
+    // Constructor to initialize the player with default values
+    Player(float initX = 0.0f, float initY = 0.0f, float initSize = 0.1f, float initSpeed = 0.05f)
+        : x(initX), y(initY), size(initSize), speed(initSpeed) {}
+
+    // Method to move the player based on keyboard input
+    void move(char direction) {
+        switch (direction) {
+            //case 'w':
+                //y += speed; // Move up // Not need since limited to horizontal motion
+                //break;
+        case 'a':
+            x -= speed; // Move left
+            break;
+            //case 's':
+                //y -= speed; // Move down // Not need since limited to horizontal motion
+                //break;
+        case 'd':
+            x += speed; // Move right
+            break;
+        }
+    }
+
+
+    // Method to draw the player as a triangle
+    void draw() const {
+        glColor3f(1.0f, 1.0f, 1.0f); // Set color to white
+        glBegin(GL_TRIANGLES); // Start drawing the triangle
+        glVertex2f(x, y); // First vertex
+        glVertex2f(x + size, y); // Second vertex
+        glVertex2f(x + size / 2, y + size); // Third vertex
+        glEnd(); // End drawing
+    }
+
+    // Getter for the player's position
+    std::pair<float, float> getPosition() const {
+        return { x, y };
+    }
+
+    // Setter for the player's position
+    void setPosition(float newX, float newY) {
+        x = newX;
+        y = newY;
+    }
+
+    // Setter for the player's speed
+    void setSpeed(float newSpeed) {
+        speed = newSpeed;
+    }
+
+    // Getter for the player's speed
+    float getSpeed() const {
+        return speed;
+    }
+};
+
+//=================================================================================================
+// Dot Class
+//=================================================================================================
+
+class Dot {
+private:
+    float x, y; // Coordinates of the dot
+    float size; // Size of the dot
+
+public:
+    // Constructor to initialize the dot with position and size
+    Dot(float initX, float initY, float initSize = 5.0f)
+        : x(initX), y(initY), size(initSize) {}
+
+    // Method to draw the dot
+    void draw() const {
+        glPointSize(size); // Set point size
+        glColor3f(1.0f, 1.0f, 1.0f); // White color
+        glBegin(GL_POINTS); // Start drawing points
+        glVertex2f(x, y); // Draw the dot at specified coordinates
+        glEnd(); // End drawing
+    }
+
+    // Getters for dot coordinates
+    std::pair<float, float> getPosition() const {
+        return { x, y };
+    }
+
+    // Setters for dot coordinates
+    void setPosition(float newX, float newY) {
+        x = newX;
+        y = newY;
+    }
+};
+
+//=================================================================================================
+// DotManager Class
+//=================================================================================================
+
+class DotManager {
+private:
+    std::vector<Dot> dots; // Collection of dots
+
+public:
+    // Method to add a new dot to the collection
+    void addDot(float x, float y, float size = 5.0f) {
+        dots.emplace_back(x, y, size);
+    }
+
+    // Method to draw all dots
+    void drawDots() const {
+        for (const auto& dot : dots) {
+            dot.draw(); // Draw each dot
+        }
+    }
+
+
+
+};
+
+//=================================================================================================
+// GLOBAL VARIABLES
+//=================================================================================================
+
+//calls the Player
+Player player(0.0f, -0.9f, 0.1f, 0.05f); // Player object with initial position and size
+DotManager dotManager; // Dot manager to manage a collection of dots
+
+//std::vector<BasicEnemy> enemies; // <- errors with this
+
+BasicEnemy benem(0.0f, -0.9f, 0.1f);
+
+//=================================================================================================
+// CALLBACKS
+//=================================================================================================
+
+void idle_func() {
+    glutPostRedisplay(); // Ensures continuous display updates
 }
 
-void reshape_func(int width, int height)
-{
-	glViewport(0, 0, width, height);
-	glutPostRedisplay();
+void reshape_func(int width, int height) {
+    glViewport(0, 0, width, height);
+    glutPostRedisplay(); // Redraw after reshaping
 }
 
-float PlayerX = 0.25f; // Establishes intitial value for PlayerX
-float PlayerY = 0.25f; // Establishes intitial value for PlayerY
+void keyboard_func(unsigned char key, int x, int y) {
+    if (key == '\x1B') {
+        exit(EXIT_SUCCESS); // Exit on ESC key press
+    }
+    else {
+        player.move(key); // Move player based on input
+    }
 
-void keyboard_func(unsigned char key, int x, int y)
-{
-	switch (key)
-	{
-	case 'w':
-
-		//PlayerY += 0.05f; Removed so Player cant move up
-		break;
-	case 'a':
-		PlayerX -= 0.05f; // Moves player left
-		break;
-	case 's':
-		//PlayerY -= 0.05f; Removed so Player cant move down
-		break;
-	case 'd':
-		PlayerX += 0.05f; // Moves player right
-		break;
-		// Exit on escape key press
-	case '\x1B':
-		exit(EXIT_SUCCESS);
-		break;
-	}
-
-	glutPostRedisplay();
-}
-
-void key_released(unsigned char key, int x, int y)
-{
-}
-
-void key_special_pressed(int key, int x, int y)
-{
-}
-
-void key_special_released(int key, int x, int y)
-{
-}
-
-void mouse_func(int button, int state, int x, int y)
-{
-}
-
-void passive_motion_func(int x, int y)
-{
-}
-
-void active_motion_func(int x, int y)
-{
+    glutPostRedisplay(); // Redraw after key press
 }
 
 //=================================================================================================
-// RENDERING  (creating and displaying the triangle)
+// RENDERING
 //=================================================================================================
 
-void display_func(void)
-{
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void display_func(void) {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// glBegin(GL_LINES);
-	// 	glColor3f(1.0f, 0.0f, 0.0f);
-	// 	glVertex2f(-0.5f, 0.0f);
-	// 	glColor3f(0.0f, 1.0f, 0.0f);
-	// 	glVertex2f(0.5f, 0.0f);
-	// glEnd();
+    // Draws the white dots
+    dotManager.drawDots(); // Draw all dots in the dot manager
 
-	// glColor3f(0.0f, 0.0f, 1.0f);
-	// 	glBegin(GL_LINES);
-	// 	glVertex2f(0.0f, -0.5f);
-	// 	glVertex2f(0.0f, 0.5f);
-	// glEnd();
+    //initialize the dots
+    dotManager.addDot(-0.7f, 0.7f);
+    dotManager.addDot(0.5f, -0.6f);
+    dotManager.addDot(0.3f, 0.9f);
+    dotManager.addDot(-0.4f, -0.3f);
+    dotManager.addDot(0.1f, 0.1f);
+    dotManager.addDot(-0.3f, 0.4f);
+    dotManager.addDot(0.6f, 0.0f);
+    dotManager.addDot(-0.9f, -0.5f);
+    dotManager.addDot(0.9f, 0.8f);
 
-	glColor3f(1.0f, 1.0f, 1.0f); //sets the color to white
-	glBegin(GL_TRIANGLES); //begin drawing the triangle
-	glVertex2f(PlayerX, PlayerY); //defines 1st vertex
-	glVertex2f(PlayerX + 0.1f, PlayerY); //defines 2nd vertex
-	glVertex2f(PlayerX + 0.05f, PlayerY + 0.1f); //defines 3rd vertex (temp)
-	glEnd(); //ends drawing
+    benem.draw();
 
-	glutSwapBuffers();
+    // Draws the player
+    player.draw(); // Draw the player triangle
+
+    glutSwapBuffers(); // Swap buffers to display the result
 }
 
 //=================================================================================================
 // INIT
 //=================================================================================================
 
-void init(void)
-{
-	// Print some info
-	std::cout << "Vendor:         " << glGetString(GL_VENDOR) << "\n";
-	std::cout << "Renderer:       " << glGetString(GL_RENDERER) << "\n";
-	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << "\n\n";
+void init(void) {
+    std::cout << "Vendor: " << glGetString(GL_VENDOR) << "\n";
+    std::cout << "Renderer: " << glGetString(GL_RENDERER) << "\n";
+    std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << "\n";
 
-	// Set the background color
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
-	std::cout << "Finished initializing...\n\n";
-
-	PlayerX = -0.075f; // Edits Players initial starting position (horizontal)
-	PlayerY = -0.9f; // Edits Players initial starting position (Vertical)
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Background color
 }
 
 //=================================================================================================
 // MAIN
 //=================================================================================================
 
-int main(int argc, char** argv)
-{
-	glutInit(&argc, argv);
+int main(int argc, char** argv) {
+    glutInit(&argc, argv);
+    glutInitWindowPosition(100, 100);
+    glutInitWindowSize(800, 600);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 
-	glutInitWindowPosition(100, 100);
-	glutInitWindowSize(800, 600);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+    glutCreateWindow("OpenGL Example with Player Class");
 
-	glutCreateWindow("Basic OpenGL Example");
+    glutDisplayFunc(display_func);
+    glutIdleFunc(idle_func);
+    glutReshapeFunc(reshape_func);
+    glutKeyboardFunc(keyboard_func);
 
-	glutDisplayFunc(display_func);
-	glutIdleFunc(idle_func);
-	glutReshapeFunc(reshape_func);
-	glutKeyboardFunc(keyboard_func);
-	glutKeyboardUpFunc(key_released);
-	glutSpecialFunc(key_special_pressed);
-	glutSpecialUpFunc(key_special_released);
-	glutMouseFunc(mouse_func);
-	glutMotionFunc(active_motion_func);
-	glutPassiveMotionFunc(passive_motion_func);
+    init();
 
-	init();
+    glutMainLoop(); // Main event loop
 
-	glutMainLoop();
-
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
