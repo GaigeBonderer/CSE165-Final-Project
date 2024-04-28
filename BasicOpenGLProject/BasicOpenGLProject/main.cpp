@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <list>
+#include <memory>
 
 //-----------------------------------------------------------------------------
 // CALLBACK DOCUMENTATION
