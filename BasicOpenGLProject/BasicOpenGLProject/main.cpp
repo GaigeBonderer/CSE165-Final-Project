@@ -1,12 +1,48 @@
 #include <GL/freeglut.h>
 #include <iostream>
 #include <vector>
+#include <list>
+#include <cstdlib>
+#include <memory>
 
 //-----------------------------------------------------------------------------
 // CALLBACK DOCUMENTATION
 // https://www.opengl.org/resources/libraries/glut/spec3/node45.html
 // http://freeglut.sourceforge.net/docs/api.php#WindowCallback
 //-----------------------------------------------------------------------------
+
+//=================================================================================================
+// Bullet Class (for user to shoot)
+//=================================================================================================
+class Bullet {
+private:
+    float x, y; // Position of the bullet
+    float speed; // Speed of the bullet
+    float width, height; // Dimensions of the bullet
+
+public:
+    Bullet(float initX, float initY, float initSpeed = 0.1f)
+        : x(initX), y(initY), speed(initSpeed), width(0.01f), height(0.1f) {}
+
+    void move() {
+        y += speed; // Move bullet upward
+    }
+
+    void draw() const {
+        glColor3f(1.0f, 0.0f, 0.0f); // Set color to red
+        glBegin(GL_QUADS); // Draw rectangle (thin red)
+        glVertex2f(x, y);
+        glVertex2f(x + width, y);
+        glVertex2f(x + width, y + height);
+        glVertex2f(x, y + height);
+        glEnd();
+    }
+
+    float getY() const {
+        return y;
+    }
+};
+
 
 //=================================================================================================
 // Abstract Enemy Base Class
@@ -32,6 +68,7 @@ public:
         : x(initX), y(initY), size(initSize) {}
 
     void draw() const override {
+        //std::cout << "Drawn called in BasicEnemy" << std::endl;
         glColor3f(1.0f, 0.0f, 0.0f); // Red color
         glBegin(GL_TRIANGLES);
         glVertex2f(x, y);
@@ -61,6 +98,30 @@ public:
         glVertex2f(x + size, y);
         glVertex2f(x + size / 2, y + size);
         glEnd();
+        std::cout << "Drawn called in AdvancedEnemy" << std::endl;
+    }
+};
+
+//=================================================================================================
+// Enemy Manager Class (for upcasting)
+//=================================================================================================
+
+class EnemyManager {
+private:
+    std::vector < std::shared_ptr<Enemy>> enemies; // Vector to store shared pointers to Enemy objects
+public:
+    // Method to add a new enemy to the manager
+    template<typename T>
+    void addEnemy(float x, float y, float size) {
+        enemies.push_back(std::make_shared<T>(x, y, size));
+    }
+
+    // Method to draw all enemies
+    void drawEnemies() const {
+        for (const auto& enemy : enemies) {
+            enemy->draw(); // Draw each enemy using polymorphism
+            //std::cout << "Drawn called in EnemyManger" << std::endl;
+        }
     }
 };
 
@@ -73,6 +134,7 @@ private:
     float x, y; // Player position
     float size; // Size of the triangle representing the player
     float speed; // Speed of movement
+    std::list<Bullet> bullets; // List of bullets
 
 public:
     // Constructor to initialize the player with default values
@@ -96,7 +158,23 @@ public:
             break;
         }
     }
+    // Method to shoot a bullet
+    void shoot() {
+        bullets.push_back(Bullet(x + size / 2, y + size)); // Bullet from top of triangle
+    }
 
+    // Method to update bullets
+    void updateBullets() {
+        for (auto it = bullets.begin(); it != bullets.end(); ) {
+            it->move(); // Move the bullet upward
+            if (it->getY() > 1.0f) { // Remove bullet when it goes out of bounds
+                it = bullets.erase(it);
+            }
+            else {
+                ++it;
+            }
+        }
+    }
 
     // Method to draw the player as a triangle
     void draw() const {
@@ -106,6 +184,10 @@ public:
         glVertex2f(x + size, y); // Second vertex
         glVertex2f(x + size / 2, y + size); // Third vertex
         glEnd(); // End drawing
+        // Draw bullets
+        for (const auto& bullet : bullets) {
+            bullet.draw();
+        }
     }
 
     // Getter for the player's position
@@ -198,9 +280,13 @@ public:
 Player player(0.0f, -0.9f, 0.1f, 0.05f); // Player object with initial position and size
 DotManager dotManager; // Dot manager to manage a collection of dots
 
+EnemyManager enemyManager;
+
+//std::cout << "Drawn" << std::endl;
+
 //std::vector<BasicEnemy> enemies; // <- errors with this
 
-BasicEnemy benem(0.0f, -0.9f, 0.1f);
+//BasicEnemy benem(0.0f, -0.9f, 0.1f);
 
 //=================================================================================================
 // CALLBACKS
@@ -220,11 +306,17 @@ void keyboard_func(unsigned char key, int x, int y) {
         exit(EXIT_SUCCESS); // Exit on ESC key press
     }
     else {
-        player.move(key); // Move player based on input
+        if (key == 'w') { // Shoot a bullet on 'w' key press
+            player.shoot();
+        }
+        else {
+            player.move(key); // Move player based on input
+        }
     }
 
     glutPostRedisplay(); // Redraw after key press
 }
+
 
 //=================================================================================================
 // RENDERING
@@ -247,10 +339,19 @@ void display_func(void) {
     dotManager.addDot(-0.9f, -0.5f);
     dotManager.addDot(0.9f, 0.8f);
 
-    benem.draw();
+    //benem.draw();
+
+    player.updateBullets(); // Move bullets
 
     // Draws the player
     player.draw(); // Draw the player triangle
+
+    //float xPos = static_cast<float>(0.0f);
+    //float yPos = static_cast<float>(0.0f);
+
+    //enemyManager.addEnemy<BasicEnemy>(xPos, yPos, sz);
+
+    enemyManager.drawEnemies(); // Draw generated enemies
 
     glutSwapBuffers(); // Swap buffers to display the result
 }
@@ -283,6 +384,20 @@ int main(int argc, char** argv) {
     glutIdleFunc(idle_func);
     glutReshapeFunc(reshape_func);
     glutKeyboardFunc(keyboard_func);
+
+    float sz = 0.1f;
+
+    // Populate 10 basic enemies
+    //for (int i = 0; i < 10; ++i) {
+        //float xPos = static_cast<float>(rand()) / RAND_MAX * 2.0f - 1.0f; // Random x position between -1.0 and 1.0 (2.0f - 1.0f)
+        //float yPos = static_cast<float>(rand()) / RAND_MAX * 2.0f - 1.0f; // Random y position between 0.5 and 1.0 (0.5f + 0.5f)
+        //enemyManager.addEnemy<BasicEnemy>(xPos, yPos, sz);
+        //std::cout << "xPOS: " << xPos << ", yPos: " << yPos << std::endl;
+    //}
+
+
+    enemyManager.addEnemy<BasicEnemy>(0.0f, 0.5f, sz);
+
 
     init();
 
