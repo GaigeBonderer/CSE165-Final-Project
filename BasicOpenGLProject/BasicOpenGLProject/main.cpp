@@ -41,6 +41,11 @@ public:
     float getY() const {
         return y;
     }
+
+    std::pair<float, float> getPosition() const {
+        return { x, y };
+    }
+
 };
 
 
@@ -52,6 +57,7 @@ class Enemy {
 public:
     virtual void draw() const = 0; // Pure virtual function for drawing enemies
     virtual ~Enemy() {} // Virtual destructor to ensure proper destruction of derived classes
+    virtual std::pair<float, float> getPosition() const = 0;
 };
 
 //=================================================================================================
@@ -82,8 +88,8 @@ public:
         x += deltaX; // Update x-coordinate
     }
 
-    // Getter for enemy position
-    std::pair<float, float> getPosition() const {
+    // Implementation of getPosition for BasicEnemy
+    std::pair<float, float> getPosition() const override {
         return { x, y };
     }
 };
@@ -92,50 +98,13 @@ public:
 // Derived FrontLine Enemy Class
 //=================================================================================================
 
-class FrontLine : public Enemy {
-private:
-    float x, y; // Enemy position
-    float size; // Size of the enemy
-
-public:
-    FrontLine(float initX, float initY, float initSize = 0.1f)
-        : x(initX), y(initY), size(initSize) {}
-
-    void draw() const override {
-
-        glColor3f(0.0f, 0.0f, 1.0f); // Blue
-        //std::cout << "Drawn called in BasicEnemy" << std::endl;
-        glBegin(GL_TRIANGLES);
-        glVertex2f(x, y + size);
-        glVertex2f(x + size, y + size);
-        glVertex2f(x + size / 2, y);
-        glEnd();
-    }
-};
+// to be done
 
 //=================================================================================================
 // Derived Boss Enemy Class
 //=================================================================================================
 
-class AdvancedEnemy : public Enemy {
-private:
-    float x, y; // Enemy position
-    float size; // Size of the enemy
-
-public:
-    AdvancedEnemy(float initX, float initY, float initSize = 0.15f)
-        : x(initX), y(initY), size(initSize) {}
-
-    void draw() const override {
-        glColor3f(0.0f, 1.0f, 0.0f); // Green color
-        glBegin(GL_TRIANGLES);
-        glVertex2f(x, y);
-        glVertex2f(x + size, y);
-        glVertex2f(x + size / 2, y + size);
-        glEnd();
-        std::cout << "Drawn called in AdvancedEnemy" << std::endl;
-    }
-};
+// to be done
 
 //=================================================================================================
 // Enemy Manager Class (for upcasting)
@@ -169,9 +138,16 @@ public:
         }
     }
 
-    // Method to get the vector of enemies
+    std::vector<std::shared_ptr<Enemy>>& getEnemies() {
+        return enemies;
+    }
     const std::vector<std::shared_ptr<Enemy>>& getEnemies() const {
         return enemies;
+    }
+
+
+    void eraseEnemy(std::shared_ptr<Enemy> enemy) {
+        enemies.erase(std::remove(enemies.begin(), enemies.end(), enemy), enemies.end());
     }
 };
 
@@ -260,6 +236,11 @@ public:
     float getSpeed() const {
         return speed;
     }
+
+    std::list<Bullet>& getBullets() {
+        return bullets;
+    }
+
 };
 
 //=================================================================================================
@@ -350,6 +331,43 @@ int AbsPos = 0;
 //BasicEnemy benem(0.0f, -0.9f, 0.1f);
 
 //=================================================================================================
+// Function for detecting collisions
+//=================================================================================================
+
+void checkCollisions() {
+    auto& bullets = player.getBullets();
+    auto& enemies = enemyManager.getEnemies();
+
+    // Iterate over bullets
+    for (auto bulletIt = bullets.begin(); bulletIt != bullets.end();) {
+        bool bulletErased = false;
+        // Iterate over enemies
+        for (auto enemyIt = enemies.begin(); enemyIt != enemies.end() && !bulletErased;) {
+            // Calculate distance between bullet and enemy
+            float distX = bulletIt->getPosition().first - (*enemyIt)->getPosition().first;
+            float distY = bulletIt->getPosition().second - (*enemyIt)->getPosition().second;
+            float distance = std::sqrt(distX * distX + distY * distY);
+
+            // If distance is less than a threshold (considered overlap), remove both bullet and enemy
+            if (distance < 0.1f) {
+                // Erase bullet
+                bulletIt = bullets.erase(bulletIt);
+                bulletErased = true;
+
+                // Erase enemy and update iterator
+                enemyIt = enemies.erase(enemyIt);
+            }
+            else {
+                ++enemyIt; // Move to the next enemy
+            }
+        }
+        if (!bulletErased) {
+            ++bulletIt; // Move to the next bullet only if it wasn't erased
+        }
+    }
+}
+
+//=================================================================================================
 // CALLBACKS
 //=================================================================================================
 
@@ -391,8 +409,10 @@ void idle_func() {
             FullRight = false;
         }
 
-        
+
     }
+
+    checkCollisions(); // Check for collisions
 
     glutPostRedisplay(); // Ensures continuous display updates
 }
@@ -504,6 +524,7 @@ int main(int argc, char** argv) {
     enemyManager.addEnemy<BasicEnemy>(0.45f, 0.5f, sz);
 
     enemyManager.addEnemy<BasicEnemy>(-0.55f, 0.5f, sz);
+
 
 
     init();
