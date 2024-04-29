@@ -68,14 +68,23 @@ public:
         : x(initX), y(initY), size(initSize) {}
 
     void draw() const override {
-        
-        glColor3f(1.0f, 0.0f, 0.0f); // Red
         //std::cout << "Drawn called in BasicEnemy" << std::endl;
+        glColor3f(1.0f, 0.0f, 0.0f); // Red
         glBegin(GL_TRIANGLES);
         glVertex2f(x, y + size); // Write the triangle vertices in reverse to flip it
         glVertex2f(x + size, y + size);
         glVertex2f(x + size / 2, y);
         glEnd();
+    }
+
+    // Method to update the position of the enemy
+    void updatePosition(float deltaX) {
+        x += deltaX; // Update x-coordinate
+    }
+
+    // Getter for enemy position
+    std::pair<float, float> getPosition() const {
+        return { x, y };
     }
 };
 
@@ -148,6 +157,21 @@ public:
             enemy->draw(); // Draw each enemy using polymorphism
             //std::cout << "Drawn called in EnemyManger" << std::endl;
         }
+    }
+
+    // Method to update enemy positions
+    void updateEnemyPositions(float deltaX) {
+        for (const auto& enemy : enemies) {
+            auto basicEnemy = std::dynamic_pointer_cast<BasicEnemy>(enemy);
+            if (basicEnemy) {
+                basicEnemy->updatePosition(deltaX);
+            }
+        }
+    }
+
+    // Method to get the vector of enemies
+    const std::vector<std::shared_ptr<Enemy>>& getEnemies() const {
+        return enemies;
     }
 };
 
@@ -308,6 +332,17 @@ DotManager dotManager; // Dot manager to manage a collection of dots
 
 EnemyManager enemyManager;
 
+int frameCounter = 0; // Used for controlling seed of enemy autnomous movement
+
+bool FullRight = false;
+
+bool Center = true;
+
+bool FullLeft = false;
+
+int AbsPos = 0;
+
+
 //std::cout << "Drawn" << std::endl;
 
 //std::vector<BasicEnemy> enemies; // <- errors with this
@@ -319,8 +354,50 @@ EnemyManager enemyManager;
 //=================================================================================================
 
 void idle_func() {
+    constexpr int movementInterval = 1000; // Update enemy positions every 1000 frames
+
+    // Increment the frame counter
+    ++frameCounter;
+
+    // Check if it's time to move the enemies
+    if (frameCounter >= movementInterval) {
+
+        frameCounter = 0;
+
+        float deltaX = 0.2f; // Amount enemies move move
+
+
+        if (Center) {
+            if (FullRight) {
+                AbsPos = AbsPos - 1;
+                enemyManager.updateEnemyPositions(-deltaX);
+            }
+            else if (FullLeft) {
+                AbsPos = AbsPos + 1;
+                enemyManager.updateEnemyPositions(deltaX);
+            }
+            else {
+                AbsPos = AbsPos + 1;
+                enemyManager.updateEnemyPositions(deltaX); // initially moves enemies to the right
+            }
+        }
+
+        if (AbsPos == 1) {
+            FullRight = true;
+            FullLeft = false;
+        }
+        if (AbsPos == -1) {
+            FullLeft = true;
+            FullRight = false;
+        }
+
+        
+    }
+
     glutPostRedisplay(); // Ensures continuous display updates
 }
+
+
 
 void reshape_func(int width, int height) {
     glViewport(0, 0, width, height);
