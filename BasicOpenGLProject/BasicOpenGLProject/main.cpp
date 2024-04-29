@@ -21,7 +21,7 @@ private:
     float width, height; // Dimensions of the bullet
 
 public:
-    Bullet(float initX, float initY, float initSpeed = 0.1f)
+    Bullet(float initX, float initY, float initSpeed = 0.005f)
         : x(initX), y(initY), speed(initSpeed), width(0.01f), height(0.1f) {}
 
     void move() {
@@ -30,7 +30,7 @@ public:
 
     void draw() const {
         glColor3f(1.0f, 0.0f, 0.0f); // Set color to red
-        glBegin(GL_QUADS); // Draw rectangle (thin red)
+        glBegin(GL_QUADS); // Draw rectangle
         glVertex2f(x, y);
         glVertex2f(x + width, y);
         glVertex2f(x + width, y + height);
@@ -48,6 +48,43 @@ public:
 
 };
 
+//=================================================================================================
+// Enemy Bullet Class
+//=================================================================================================
+
+class EnemyBullet {
+private:
+    float x, y; // Position of the bullet
+    float speed; // Speed of the bullet
+    float width, height; // Dimensions of the bullet
+
+public:
+    EnemyBullet(float initX, float initY, float initSpeed = -0.001f)
+        : x(initX), y(initY), speed(initSpeed), width(0.01f), height(0.1f) {}
+
+    void move() {
+        y += speed; // Move bullet downward
+    }
+
+    void draw() const {
+        glColor3f(0.0f, 1.0f, 0.0f); // Set color to green
+        glBegin(GL_QUADS);
+        glVertex2f(x, y);
+        glVertex2f(x + width, y);
+        glVertex2f(x + width, y + height);
+        glVertex2f(x, y + height);
+        glEnd();
+    }
+
+    float getY() const {
+        return y;
+    }
+
+    std::pair<float, float> getPosition() const {
+        return { x, y };
+    }
+};
+
 
 //=================================================================================================
 // Abstract Enemy Base Class
@@ -58,6 +95,7 @@ public:
     virtual void draw() const = 0; // Pure virtual function for drawing enemies
     virtual ~Enemy() {} // Virtual destructor to ensure proper destruction of derived classes
     virtual std::pair<float, float> getPosition() const = 0;
+    
 };
 
 //=================================================================================================
@@ -98,7 +136,35 @@ public:
 // Derived FrontLine Enemy Class
 //=================================================================================================
 
-// to be done
+class FrontLine : public Enemy {
+private:
+    float x, y; // Enemy position
+    float size; // Size of the enemy
+
+public:
+    FrontLine(float initX, float initY, float initSize = 0.1f)
+        : x(initX), y(initY), size(initSize) {}
+
+    void draw() const override {
+        //std::cout << "Drawn called in BasicEnemy" << std::endl;
+        glColor3f(0.0f, 0.0f, 1.0f); // Red
+        glBegin(GL_TRIANGLES);
+        glVertex2f(x, y + size); // Write the triangle vertices in reverse to flip it
+        glVertex2f(x + size, y + size);
+        glVertex2f(x + size / 2, y);
+        glEnd();
+    }
+
+    // Method to update the position of the enemy
+    void updatePosition(float deltaX) {
+        x += deltaX; // Update x-coordinate
+    }
+
+    // Implementation of getPosition for BasicEnemy
+    std::pair<float, float> getPosition() const override {
+        return { x, y };
+    }
+};
 
 //=================================================================================================
 // Derived Boss Enemy Class
@@ -113,6 +179,7 @@ public:
 class EnemyManager {
 private:
     std::vector < std::shared_ptr<Enemy>> enemies; // Vector to store shared pointers to Enemy objects
+    std::list<EnemyBullet> enemyBullets; // List to store enemy bullets globally
 public:
     // Method to add a new enemy to the manager
     template<typename T>
@@ -148,6 +215,37 @@ public:
 
     void eraseEnemy(std::shared_ptr<Enemy> enemy) {
         enemies.erase(std::remove(enemies.begin(), enemies.end(), enemy), enemies.end());
+    }
+
+    void shootFromEnemies() {
+        for (const auto& enemy : enemies) {
+            auto pos = enemy->getPosition();
+            enemyBullets.push_back(EnemyBullet(pos.first, pos.second - 0.1)); // Create bullet below the enemy
+        }
+    }
+
+    // Method to update enemy bullets
+    void updateEnemyBullets() {
+        for (auto it = enemyBullets.begin(); it != enemyBullets.end();) {
+            it->move();
+            if (it->getY() < -1.0) {
+                it = enemyBullets.erase(it);
+            }
+            else {
+                ++it;
+            }
+        }
+    }
+
+    // Method to draw enemy bullets
+    void drawEnemyBullets() const {
+        for (const auto& bullet : enemyBullets) {
+            bullet.draw();
+        }
+    }
+
+    std::list<EnemyBullet>& getMutableEnemyBullets() {
+        return enemyBullets;
     }
 };
 
@@ -323,13 +421,6 @@ bool FullLeft = false;
 
 int AbsPos = 0;
 
-
-//std::cout << "Drawn" << std::endl;
-
-//std::vector<BasicEnemy> enemies; // <- errors with this
-
-//BasicEnemy benem(0.0f, -0.9f, 0.1f);
-
 //=================================================================================================
 // Function for detecting collisions
 //=================================================================================================
@@ -367,35 +458,67 @@ void checkCollisions() {
     }
 }
 
+void checkPlayerCollision() {
+    auto playerPos = player.getPosition();
+    auto& enemyBullets = enemyManager.getMutableEnemyBullets();
+
+    for (auto it = enemyBullets.begin(); it != enemyBullets.end(); ++it) {
+        float distX = it->getPosition().first - playerPos.first;
+        float distY = it->getPosition().second - playerPos.second;
+
+        // Here is where you put the line with the static cast
+        float distance = static_cast<float>(std::sqrt(distX * distX + distY * distY));
+
+        if (distance < 0.1f) { // Simple collision detection
+            exit(EXIT_SUCCESS); // End the game if the player is hit
+        }
+    }
+}
+
 //=================================================================================================
 // CALLBACKS
 //=================================================================================================
 
 void idle_func() {
-    constexpr int movementInterval = 1000; // Update enemy positions every 1000 frames
-
     // Increment the frame counter
     ++frameCounter;
 
-    // Check if it's time to move the enemies
+    if (frameCounter % 1000 == 0) {
+        enemyManager.shootFromEnemies();
+    }
+
+    // Update the positions of bullets shot by enemies
+    auto& enemyBullets = enemyManager.getMutableEnemyBullets();
+    for (auto it = enemyBullets.begin(); it != enemyBullets.end();) {
+        it->move();
+        if (it->getY() < -1.0f) {
+            it = enemyBullets.erase(it); // Remove bullets that go below the screen
+        }
+        else {
+            ++it;
+        }
+    }
+
+    // Check for collisions between enemy bullets and the player
+    checkPlayerCollision();
+    checkCollisions();
+
+    constexpr int movementInterval = 1000; // Update enemy positions every 1000 frames
     if (frameCounter >= movementInterval) {
-
         frameCounter = 0;
-
-        float deltaX = 0.2f; // Amount enemies move move
-
+        float deltaX = 0.2f; // Amount enemies move
 
         if (Center) {
             if (FullRight) {
-                AbsPos = AbsPos - 1;
+                AbsPos -= 1;
                 enemyManager.updateEnemyPositions(-deltaX);
             }
             else if (FullLeft) {
-                AbsPos = AbsPos + 1;
+                AbsPos += 1;
                 enemyManager.updateEnemyPositions(deltaX);
             }
             else {
-                AbsPos = AbsPos + 1;
+                AbsPos += 1;
                 enemyManager.updateEnemyPositions(deltaX); // initially moves enemies to the right
             }
         }
@@ -408,14 +531,12 @@ void idle_func() {
             FullLeft = true;
             FullRight = false;
         }
-
-
     }
 
-    checkCollisions(); // Check for collisions
-
-    glutPostRedisplay(); // Ensures continuous display updates
+    
+    glutPostRedisplay(); // Redraw the scene
 }
+
 
 
 
@@ -448,7 +569,6 @@ void keyboard_func(unsigned char key, int x, int y) {
 void display_func(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Draws the white dots
     dotManager.drawDots(); // Draw all dots in the dot manager
 
     //initialize the dots
@@ -462,19 +582,16 @@ void display_func(void) {
     dotManager.addDot(-0.9f, -0.5f);
     dotManager.addDot(0.9f, 0.8f);
 
-    //benem.draw();
-
     player.updateBullets(); // Move bullets
 
-    // Draws the player
-    player.draw(); // Draw the player triangle
+    
+    player.draw(); // Draws the player
 
-    //float xPos = static_cast<float>(0.0f);
-    //float yPos = static_cast<float>(0.0f);
 
-    //enemyManager.addEnemy<BasicEnemy>(xPos, yPos, sz);
+    enemyManager.drawEnemies(); // Draws enemies
 
-    enemyManager.drawEnemies(); // Draw generated enemies
+    
+    enemyManager.drawEnemyBullets(); // Draw enemy bullets
 
     glutSwapBuffers(); // Swap buffers to display the result
 }
@@ -510,16 +627,14 @@ int main(int argc, char** argv) {
 
     float sz = 0.1f;
 
-    // Create 10 basic enemies in random loactions
-    //for (int i = 0; i < 10; ++i) {
-        //float xPos = static_cast<float>(rand()) / RAND_MAX * 2.0f - 1.0f; // Random x position between -1.0 and 1.0 (2.0f - 1.0f)
-        //float yPos = static_cast<float>(rand()) / RAND_MAX * 2.0f - 1.0f; // Random y position between 0.5 and 1.0 (0.5f + 0.5f)
-        //enemyManager.addEnemy<BasicEnemy>(xPos, yPos, sz);
-        //std::cout << "xPOS: " << xPos << ", yPos: " << yPos << std::endl;
-    //}
 
+    enemyManager.addEnemy<FrontLine>(-0.05f, 0.4f, sz);
 
-    enemyManager.addEnemy<BasicEnemy>(-0.05f, 0.5f, sz);
+    enemyManager.addEnemy<FrontLine>(-0.55f, 0.3f, sz);
+
+    enemyManager.addEnemy<FrontLine>(0.45f, 0.3f, sz);
+
+    enemyManager.addEnemy<BasicEnemy>(-0.05f, 0.7f, sz);
 
     enemyManager.addEnemy<BasicEnemy>(0.45f, 0.5f, sz);
 
