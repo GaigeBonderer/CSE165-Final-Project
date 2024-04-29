@@ -68,12 +68,38 @@ public:
         : x(initX), y(initY), size(initSize) {}
 
     void draw() const override {
+        
+        glColor3f(1.0f, 0.0f, 0.0f); // Red
         //std::cout << "Drawn called in BasicEnemy" << std::endl;
-        glColor3f(1.0f, 0.0f, 0.0f); // Red color
         glBegin(GL_TRIANGLES);
-        glVertex2f(x, y);
-        glVertex2f(x + size, y);
-        glVertex2f(x + size / 2, y + size);
+        glVertex2f(x, y + size); // Write the triangle vertices in reverse to flip it
+        glVertex2f(x + size, y + size);
+        glVertex2f(x + size / 2, y);
+        glEnd();
+    }
+};
+
+//=================================================================================================
+// Derived FrontLine Enemy Class
+//=================================================================================================
+
+class FrontLine : public Enemy {
+private:
+    float x, y; // Enemy position
+    float size; // Size of the enemy
+
+public:
+    FrontLine(float initX, float initY, float initSize = 0.1f)
+        : x(initX), y(initY), size(initSize) {}
+
+    void draw() const override {
+
+        glColor3f(0.0f, 0.0f, 1.0f); // Blue
+        //std::cout << "Drawn called in BasicEnemy" << std::endl;
+        glBegin(GL_TRIANGLES);
+        glVertex2f(x, y + size);
+        glVertex2f(x + size, y + size);
+        glVertex2f(x + size / 2, y);
         glEnd();
     }
 };
@@ -277,7 +303,7 @@ public:
 //=================================================================================================
 
 //calls the Player
-Player player(0.0f, -0.9f, 0.1f, 0.05f); // Player object with initial position and size
+Player player(-0.05f, -0.9f, 0.1f, 0.05f); // Player object with initial position and size
 DotManager dotManager; // Dot manager to manage a collection of dots
 
 EnemyManager enemyManager;
@@ -387,7 +413,7 @@ int main(int argc, char** argv) {
 
     float sz = 0.1f;
 
-    // Populate 10 basic enemies
+    // Create 10 basic enemies in random loactions
     //for (int i = 0; i < 10; ++i) {
         //float xPos = static_cast<float>(rand()) / RAND_MAX * 2.0f - 1.0f; // Random x position between -1.0 and 1.0 (2.0f - 1.0f)
         //float yPos = static_cast<float>(rand()) / RAND_MAX * 2.0f - 1.0f; // Random y position between 0.5 and 1.0 (0.5f + 0.5f)
@@ -396,7 +422,11 @@ int main(int argc, char** argv) {
     //}
 
 
-    enemyManager.addEnemy<BasicEnemy>(0.0f, 0.5f, sz);
+    enemyManager.addEnemy<BasicEnemy>(-0.05f, 0.5f, sz);
+
+    enemyManager.addEnemy<BasicEnemy>(0.45f, 0.5f, sz);
+
+    enemyManager.addEnemy<BasicEnemy>(-0.55f, 0.5f, sz);
 
 
     init();
